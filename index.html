@@ -104,33 +104,111 @@ const posts=[
 "Social Service Secretary","Boys' Common Room Secretary","Girls' Common Room Secretary"
 ];
 const countGrid=document.getElementById("countGrid");
-const stored=JSON.parse(localStorage.getItem("interestCounts")||"{}");
-function renderCounts(){
- countGrid.innerHTML="";
- posts.forEach(p=>{
-  const c=Number(stored[p]||0);
-  countGrid.innerHTML+=`<div class="card"><h3>${p}</h3><div class="count">${c}</div><div>Interested</div></div>`;
- });
-}
-function fillSelect(id){const s=document.getElementById(id);posts.forEach(p=>s.insertAdjacentHTML("beforeend",`<option>${p}</option>`));}
-fillSelect("postInterest");fillSelect("postNomination");renderCounts();
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbzd7isMIY91BcRrtXMidehgb2Q5mN6xQJUdsTINmgE6aKVHt7WZJJ_T2Ple5A0FqmdJdA/exec";
 
-document.getElementById("interestForm").addEventListener("submit",e=>{
- e.preventDefault();
- const f=new FormData(e.target), post=f.get("post");
- stored[post]=(stored[post]||0)+1;localStorage.setItem("interestCounts",JSON.stringify(stored));
- e.target.reset();document.getElementById("interestSuccess").style.display="block";renderCounts();
+const posts = [
+  "President","Vice President","General Secretary","Assistant General Secretary",
+  "Magazine Secretary","Major Games Secretary","Cultural Secretary",
+  "Debate & Symposium Secretary","Minor Games Secretary","Gymnastics Secretary",
+  "Social Service Secretary","Boys' Common Room Secretary","Girls' Common Room Secretary"
+];
+
+const countGrid = document.getElementById("countGrid");
+
+function renderCounts() {
+  countGrid.innerHTML = "";
+  posts.forEach(p => {
+    countGrid.innerHTML += `<div class="card"><h3>${p}</h3><div class="count">-</div><div>Interested</div></div>`;
+  });
+}
+
+function fillSelect(id) {
+  const s = document.getElementById(id);
+  posts.forEach(p => s.insertAdjacentHTML("beforeend", `<option>${p}</option>`));
+}
+
+fillSelect("postInterest");
+fillSelect("postNomination");
+renderCounts();
+
+async function sendData(data) {
+  const response = await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
+  return response.json();
+}
+
+document.getElementById("interestForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const f = new FormData(e.target);
+
+  try {
+    await sendData({
+      type: "Interest",
+      fullName: f.get("name"),
+      department: f.get("department"),
+      semester: f.get("semester"),
+      roll: f.get("roll"),
+      mobile: f.get("phone"),
+      nsui: f.get("nsui"),
+      preferredPost: f.get("post")
+    });
+
+    e.target.reset();
+    document.getElementById("interestSuccess").style.display = "block";
+  } catch (error) {
+    alert("Submission failed. Please try again.");
+  }
 });
-document.getElementById("nominationForm").addEventListener("submit",e=>{
- e.preventDefault();e.target.reset();document.getElementById("nominationSuccess").style.display="block";
+
+document.getElementById("nominationForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const f = new FormData(e.target);
+
+  try {
+    await sendData({
+      type: "Nomination",
+      fullName: f.get("name"),
+      department: f.get("department"),
+      semester: f.get("semester"),
+      roll: f.get("roll"),
+      mobile: f.get("phone"),
+      electionPost: f.get("post"),
+      reason: f.get("reason")
+    });
+
+    e.target.reset();
+    document.getElementById("nominationSuccess").textContent =
+      "Nomination submitted successfully.";
+    document.getElementById("nominationSuccess").style.display = "block";
+  } catch (error) {
+    alert("Submission failed. Please try again.");
+  }
 });
-document.getElementById("commentForm").addEventListener("submit",e=>{
- e.preventDefault();
- const f=new FormData(e.target); const comments=JSON.parse(localStorage.getItem("comments")||"[]");
- comments.push({name:f.get("anonymous")?"Anonymous":(f.get("name")||"Anonymous"),comment:f.get("comment"),time:new Date().toISOString()});
- localStorage.setItem("comments",JSON.stringify(comments));e.target.reset();
- document.getElementById("commentSuccess").style.display="block";
+
+document.getElementById("commentForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const f = new FormData(e.target);
+
+  try {
+    await sendData({
+      type: "Comment",
+      name: f.get("name"),
+      comment: f.get("comment"),
+      anonymous: f.get("anonymous") ? "Yes" : "No"
+    });
+
+    e.target.reset();
+    document.getElementById("commentSuccess").textContent =
+      "Thank you. Your comment has been saved.";
+    document.getElementById("commentSuccess").style.display = "block";
+  } catch (error) {
+    alert("Submission failed. Please try again.");
+  }
 });
-</script>
-</body>
-</html>
+</script> 
