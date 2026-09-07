@@ -1,3 +1,4 @@
+ <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbzd7isMIY91BcRrtXMidehgb2Q5mN6xQJUdsTINmgE6aKVHt7WZJJ_T2Ple5A0FqmdJdA/exec";
 
 const posts = [
@@ -16,10 +17,14 @@ const posts = [
   "Girls' Common Room Secretary"
 ];
 
-const countGrid = document.getElementById("countGrid");
-
 function fillSelect(id) {
   const select = document.getElementById(id);
+  if (!select || select.options.length > 0) return;
+
+  const first = document.createElement("option");
+  first.value = "";
+  first.textContent = "Select a post";
+  select.appendChild(first);
 
   posts.forEach(post => {
     const option = document.createElement("option");
@@ -32,19 +37,6 @@ function fillSelect(id) {
 fillSelect("postInterest");
 fillSelect("postNomination");
 
-if (countGrid) {
-  countGrid.innerHTML = "";
-  posts.forEach(post => {
-    countGrid.innerHTML += `
-      <div class="card">
-        <h3>${post}</h3>
-        <div class="count">-</div>
-        <div>Interested</div>
-      </div>
-    `;
-  });
-}
-
 async function sendData(data) {
   const response = await fetch(API_URL, {
     method: "POST",
@@ -55,7 +47,7 @@ async function sendData(data) {
     throw new Error("Network error");
   }
 
-  return response.json();
+  return await response.json();
 }
 
 document.getElementById("interestForm").addEventListener("submit", async function(e) {
@@ -75,11 +67,10 @@ document.getElementById("interestForm").addEventListener("submit", async functio
       preferredPost: f.get("post")
     });
 
-    if (!result.success) {
-      throw new Error(result.error || "Submission failed");
-    }
+    if (!result.success) throw new Error(result.error);
 
     this.reset();
+
     document.getElementById("interestSuccess").textContent =
       "Interest submitted successfully.";
     document.getElementById("interestSuccess").style.display = "block";
@@ -106,11 +97,10 @@ document.getElementById("nominationForm").addEventListener("submit", async funct
       reason: f.get("reason")
     });
 
-    if (!result.success) {
-      throw new Error(result.error || "Submission failed");
-    }
+    if (!result.success) throw new Error(result.error);
 
     this.reset();
+
     document.getElementById("nominationSuccess").textContent =
       "Nomination submitted successfully.";
     document.getElementById("nominationSuccess").style.display = "block";
@@ -133,11 +123,10 @@ document.getElementById("commentForm").addEventListener("submit", async function
       anonymous: f.get("anonymous") ? "Yes" : "No"
     });
 
-    if (!result.success) {
-      throw new Error(result.error || "Submission failed");
-    }
+    if (!result.success) throw new Error(result.error);
 
     this.reset();
+
     document.getElementById("commentSuccess").textContent =
       "Thank you. Your comment has been saved.";
     document.getElementById("commentSuccess").style.display = "block";
@@ -146,4 +135,4 @@ document.getElementById("commentForm").addEventListener("submit", async function
     alert("Submission failed. Please try again.");
   }
 });
-</script>
+ </script>
